@@ -24,6 +24,7 @@ class Router
 				throw new Exception('no route added for ' . $_SERVER['REQUEST_URI']);
 			}
 			else {
+			    $this->getUser();
 				// executes the action on the controller
 				$controller->execute($action);
 			}
@@ -36,6 +37,17 @@ class Router
 		}
 	}
 
+	protected function getUser()
+    {
+        $userId = '';
+        if (isset($_SESSION['user_id'])) {
+            $userId = $_SESSION['user_id'];
+            $user = new UserModel();
+            $user = $user->getUserByID($userId);
+
+            Register::setUser($user);
+        }
+    }
 
     /**
      * @param $route

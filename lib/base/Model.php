@@ -7,22 +7,17 @@ class Model
 	
 	public function __construct()
 	{
-		// parses the settings file
 		$settings = parse_ini_file(ROOT_PATH . '/config/settings.ini', true);
-		
-		// starts the connection to the database
-		$this->_dbh = new PDO(
-			sprintf(
-				"%s:host=%s;dbname=%s",
-				$settings['database']['driver'],
-				$settings['database']['host'],
-				$settings['database']['dbname']
-			),
-			$settings['database']['user'],
-			$settings['database']['password'],
-			array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")
-		);
-		
+        $this->_dbh = Database::instance()->getConnection(
+            sprintf(
+                "%s:host=%s;dbname=%s",
+                $settings['database']['driver'],
+                $settings['database']['host'],
+                $settings['database']['dbname']
+            ),
+            $settings['database']['user'],
+            $settings['database']['password']
+        );
 		$this->init();
 	}
 	
@@ -41,9 +36,9 @@ class Model
 	
 	public function fetchOne($id)
 	{
-		$sql = 'select * from ' . $this->_table;
-		$sql .= ' where id = ?';
-		
+		$sql = "select * from {$this->_table}";
+		$sql .= " where id = '{$id}'";
+
 		$statement = $this->_dbh->prepare($sql);
 		$statement->execute(array($id));
 		
@@ -61,24 +56,20 @@ class Model
 		$values = array();
 		
 		if (array_key_exists('id', $data)) {
-			$sql = 'update ' . $this->_table . ' set ';
+			$sql = "update {$this->_table} set ";
 			
 			$first = true;
 			foreach($data as $key => $value) {
 				if ($key != 'id') {
-					$sql .= ($first == false ? ',' : '') . ' ' . $key . ' = ?';
-					
+					$sql .= ($first == false ? ',' : '') . " $key = '{$value}'";
+
 					$values[] = $value;
 					
 					$first = false;
 				}
 			}
-			
-			// adds the id as well
 			$values[] = $data['id'];
-			
-			$sql .= ' where id = ?';// . $data['id'];
-			
+			$sql .= " where id = {$data['id']}";
 			$statement = $this->_dbh->prepare($sql);
 			return $statement->execute($values);
 		}
@@ -117,7 +108,35 @@ class Model
      */
     public function delete($id)
 	{
-		$statement = $this->_dbh->prepare("delete from " . $this->_table . " where id = ?");
+		$statement = $this->_dbh->prepare("delete from {$this->_table} where id = {$id}");
 		return $statement->execute(array($id));
 	}
+
+    /**
+     * @param $query
+     * @return array
+     */
+    public function query($query)
+    {
+        $data = $this->_dbh->prepare($query);
+        $data->execute();
+        return $data->fetchAll();
+    }
+
+    public function queryDelete($query)
+    {
+        $data = $this->_dbh->prepare($query);
+        return $data->execute();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function findAll()
+    {
+        $data = $this->_dbh->prepare("SELECT * FROM {$this->_table}");
+        $data->execute();
+        return $data->fetchAll();
+    }
+
 }

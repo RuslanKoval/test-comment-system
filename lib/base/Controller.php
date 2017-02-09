@@ -119,4 +119,38 @@ class Controller
 	{
 		$this->_namedParameters[$key] = $value;
 	}
+
+    /**
+     * @return bool
+     */
+    public function loadData()
+    {
+        $data = $this->_getAllParams();
+        if(!$data)
+            return false;
+
+        foreach ($data as $key => $item) {
+            Register::setField($key, $this->hackpro($item));
+        }
+        return true;
+    }
+
+
+    /**
+     * @param $string
+     * @return mixed|null
+     */
+    private function hackpro($string) {
+        if (!isset($string)) {
+            return NULL;
+        }
+        $string = preg_replace("/[^A-Za-z0-9?!.,'@$ _-]/", '', $string);
+        $string = preg_replace("/\?/", "&#63;", $string);
+        $string = preg_replace("/\!/", "&#33;", $string);
+        $string = preg_replace("/\'/", "&#39;", $string);
+        //$string = preg_replace("/\,/", "&#44;", $string);
+        $string = preg_replace("/\\\$/", "&#36;", $string);
+
+        return $string;
+    }
 }

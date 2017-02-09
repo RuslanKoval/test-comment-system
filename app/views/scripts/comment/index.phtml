@@ -1,0 +1,87 @@
+<?php if(Register::getUserId()): ?>
+    <form METHOD="post" action="/push">
+        <div class="form-group">
+            <label for="exampleInputEmail1">Comment</label>
+            <textarea class="form-control" rows="3" name="text"></textarea>
+
+        </div>
+
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+<?php endif;?>
+
+<h2>comments:</h2>
+
+<?php
+
+$currentPage = (isset($_GET['page'])) ? $_GET['page'] : 1;
+$urlPattern = '?page=(:num)';
+$comments = $this->comments;
+if($comments) {
+    renderTree($comments);
+} else {
+    echo '<p>No comments</p>';
+}
+
+function renderTree($arr, $level=0) {
+    $prepend = str_repeat(' ', $level);
+
+    echo $prepend, '<ul>';
+    foreach($arr as $comment) { ?>
+
+        <div class="row">
+            <div class="col-md-1"><?= $comment['username']?></div>
+            <div class="col-md-8">
+                <?= $comment['text']?>
+                <hr>
+                <?php if(Register::getUserId()) :?>
+                    <div class="btn-group btn-group-xs" role="group" aria-label="...">
+                        <?php if(Register::getUserId() != $comment['user_id']): ?>
+                            <button type="button" class="btn btn-default reply-button">Reply</button>
+                        <?php endif;?>
+                        <?php if(Register::getUserId() == $comment['user_id']): ?>
+                            <a type="button" class="btn btn-default update-button">Update</a>
+                            <form action="/delete" method="post" class="btn-group btn-group-xs">
+                                <input type="hidden" name="id" value="<?= $comment['id']?>">
+                                <button type="submit" class="btn btn-default">delete</button>
+                            </form>
+
+                        <?php endif;?>
+                    </div>
+                <?php endif;?>
+
+            </div>
+            <div class="col-md-3"><?= date("F j, Y, g:i a", $comment['created_at']);?></div>
+            <?php if(Register::getUserId()):?>
+                <div class="col-md-12 reply-form hidden">
+                    <form METHOD="post" action="/reply">
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">Reply</label>
+                            <textarea class="form-control" rows="3" name="text"></textarea>
+                            <input type="hidden" name="parent" value="<?= $comment['id']?>">
+                        </div>
+
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                </div>
+            <?php endif;?>
+            <div class="col-md-12 update-form hidden">
+                <form METHOD="post" action="/update">
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">Update</label>
+                        <textarea class="form-control" rows="3" name="text" ><?= $comment['text']?></textarea>
+                        <input type="hidden" name="id" value="<?= $comment['id']?>">
+                    </div>
+
+                    <button type="submit" class="btn btn-default">Submit</button>
+                </form>
+            </div>
+        </div>
+        <hr>
+      <?php  if ( !empty($comment['child']) ) {
+            renderTree($comment['child'], $level+1);
+      }
+
+    }
+    echo $prepend, '</ul>';
+}
