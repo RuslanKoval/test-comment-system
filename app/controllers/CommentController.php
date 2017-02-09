@@ -38,7 +38,7 @@ class CommentController extends ApplicationController
             $comment = new CommentModel();
             $commentById = $comment->getCommentById(Register::getField('id'));
             $replyComment = $comment->getCommentById(Register::getField('parent'));
-            if ($commentById['id'] != Register::getUserId() && $replyComment) {
+            if ($commentById['user_id'] != Register::getUserId() && $replyComment) {
                 $commentData = [
                     'user_id' => Register::getUserId(),
                     'parent' => Register::getField('parent'),
@@ -62,7 +62,7 @@ class CommentController extends ApplicationController
         if ($this->loadData()) {
             $comment = new CommentModel();
             $commentById = $comment->getCommentById(Register::getField('id'));
-            if ($commentById['id'] == Register::getUserId()) {
+            if ($commentById['user_id'] == Register::getUserId()) {
                 $commentData = [
                     'id' => Register::getField('id'),
                     'text' => Register::getField('text'),
@@ -84,8 +84,7 @@ class CommentController extends ApplicationController
         if ($this->loadData()) {
             $comment = new CommentModel();
             $commentById = $comment->getCommentById(Register::getField('id'));
-
-            if ($commentById['id'] == Register::getUserId()) {
+            if ($commentById['user_id'] == Register::getUserId()) {
                 $comment->deleteComments($commentById['id']);
                 header("Location: /");
             } else {

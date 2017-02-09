@@ -98,7 +98,8 @@ class UserModel extends Model
     {
         $query = "SELECT * FROM {$this->_table} WHERE id = '{$id}' LIMIT 1";
         $result =  $this->query($query);
-        return $result[0];
+        if($result)
+            return $result[0];
     }
 
     /**
